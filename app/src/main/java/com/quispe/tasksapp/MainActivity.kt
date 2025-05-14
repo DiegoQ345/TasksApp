@@ -3,45 +3,32 @@ package com.quispe.tasksapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.quispe.tasksapp.ui.theme.TasksAppTheme
+import androidx.compose.material3.MaterialTheme
+import androidx.lifecycle.ViewModelProvider
+import androidx.room.Room
+import com.quispe.tasksapp.data.AppDatabase
+import com.quispe.tasksapp.repository.TaskRepository
+import com.quispe.tasksapp.screen.TaskScreen
+import com.quispe.tasksapp.viewmodel.TaskViewModel
+import com.quispe.tasksapp.viewmodel.TaskViewModelFactory
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+
+        val database = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "task_db"
+        ).build()
+
+        val repository = TaskRepository(database.taskDao())
+        val factory = TaskViewModelFactory(repository)
+        val viewModel = ViewModelProvider(this, factory)[TaskViewModel::class.java]
+
         setContent {
-            TasksAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+            MaterialTheme {
+                TaskScreen(viewModel)
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    TasksAppTheme {
-        Greeting("Android")
     }
 }
